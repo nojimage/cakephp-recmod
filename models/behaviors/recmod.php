@@ -34,6 +34,17 @@ class RecmodBehavior extends ModelBehavior {
         $this->settings[$model->alias] = am(array('auto' => true, 'suffix' => 'Log', 'callback' => null), $config);
     }
 
+    /**
+     *
+     * @param AppModel $model
+     * @param array $data
+     */
+    public function recordLog($model, $data = array()) {
+        $ModelLog = $this->_getLogModel($model);
+        if (!empty($data) && !$model->id) {
+            $data = $this->_getData($model);
+        }
+        return $ModelLog->save($this->_filter($model, $data));
     }
 
     /**

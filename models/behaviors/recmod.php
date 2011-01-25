@@ -136,6 +136,14 @@ class RecmodBehavior extends ModelBehavior {
                 unset($data[$field]);
             }
         }
+
+        if (!empty($this->settings[$model->alias]['callback'])) {
+            // callback
+            if (is_string($this->settings[$model->alias]['callback']) && method_exists($model, $this->settings[$model->alias]['callback'])) {
+                $data = call_user_func(array($model, $this->settings[$model->alias]['callback']), $data);
+            }
+        }
+
         return $data;
     }
 

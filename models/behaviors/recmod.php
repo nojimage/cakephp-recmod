@@ -24,8 +24,15 @@
 class RecmodBehavior extends ModelBehavior {
 
     protected $_savedData = array();
+    /**
+     *
+     * @var array
+     */
+    public $settings = array();
 
     public function setup($model, $config = array()) {
+        $this->settings[$model->alias] = am(array('auto' => true, 'suffix' => 'Log', 'callback' => null), $config);
+    }
 
     }
 
@@ -35,7 +42,13 @@ class RecmodBehavior extends ModelBehavior {
      * @param bool $created
      */
     public function afterSave($model, $created) {
-        $ModelLog = ClassRegistry::init($model->name . 'Log'); // TODO: read suffix
+
+        if (!$this->settings[$model->alias]['auto']) {
+            return;
+        }
+
+        $ModelLog = $this->_getLogModel($model);
+
         // create logging data
         $data = $model->data[$model->alias];
         if (!$created) {
@@ -61,13 +74,22 @@ class RecmodBehavior extends ModelBehavior {
      */
     public function afterDelete($model) {
 
-        $ModelLog = ClassRegistry::init($model->name . 'Log'); // TODO: read suffix
-
+        $ModelLog = $this->_getLogModel($model);
         if (!empty($this->_savedData[$model->alias])) {
             $ModelLog->create();
             $ModelLog->save($this->_filter($model, $this->_savedData[$model->alias]));
             unset($this->_savedData[$model->alias]);
         }
+    }
+
+    /**
+     * get logging model
+     *
+     * @param AppModel $model
+     * @return AppModel
+     */
+    protected function _getLogModel($model) {
+        return ClassRegistry::init($model->alias . $this->settings[$model->alias]['suffix']);
     }
 
     /**
